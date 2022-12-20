@@ -8,143 +8,153 @@
 
 using namespace std;
 
-const int widht = 10;
-const int height = 12;
-int block_freq = 25;
-char field_mash[height][widht];
+enum chars {
+	dogS = '@',
+	borderS = '#',
+	voidS = ' ',
+	exitS = 'O'
+};
 
-int dog_X{}, dog_Y{}, dX{}, dY{}, door_X{}, door_Y{};
-const char dog = '@';
+
+const int FIELD_WIDTH = 10;
+const int FIELD_HEIGHT = 12;
+const int block_freq = 25;
+
+
+struct Cords {
+	int x;
+	int y;
+
+	Cords(int x, int y): x(x), y(y) {}
+};
+
+
+char field_mash[FIELD_HEIGHT][FIELD_WIDTH];
+
+Cords dog(0, 0);
+Cords door(0, 0);
+Cords vectorMove(0, 0);
 
 void field_gen() {
-
-    srand(time(NULL));
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < widht; j++) {
-            int rand_num = rand() % 100;
-            if (rand_num < block_freq)
-                field_mash[i][j] = '#';
-            else
-                field_mash[i][j] = '_';
-        }
-    }
-    door_X = rand() % widht;
-    door_Y = rand() % height;
-    field_mash[door_Y][door_X] = 'O';
+	for (int i = 0; i < FIELD_HEIGHT; i++) {
+		for (int j = 0; j < FIELD_WIDTH; j++) {
+			int rand_num = rand() % 100;
+			if (rand_num < block_freq)
+				field_mash[i][j] = borderS;
+			else
+				field_mash[i][j] = voidS;
+		}
+	}
+	door.x = rand() % FIELD_WIDTH;
+	door.y = rand() % FIELD_HEIGHT;
+	field_mash[door.y][door.x] = exitS;
 
 }
 void draw() {
-    //перенос курсора на початок сторінки
-    //щоб текст заміняв свій минули
-    //можна вважати це як очищення консоліі але не билимає
-    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD pos{ 0, 0 };
-    SetConsoleCursorPosition(hStdOut, pos);
+	//перенос курсора на початок сторінки
+	//щоб текст заміняв свій минули
+	//можна вважати це як очищення консоліі але не билимає
+	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD pos{ 0, 0 };
+	SetConsoleCursorPosition(hStdOut, pos);
 
-    //
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < widht; j++) {
-            if (i == dog_Y && j == dog_X) 
-            {
-                //змінення кольору щоб намалювати собаку
-                SetConsoleTextAttribute(hStdOut, BACKGROUND_BLUE | FOREGROUND_GREEN);
-                cout << dog;
-                //повернення кольору
-                SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
-            }
-            else {
-                cout << field_mash[i][j];
-            }
-        }
-        cout << endl;
-    }
+	//
+	for (int i = 0; i < FIELD_HEIGHT; i++) {
+		for (int j = 0; j < FIELD_WIDTH; j++) {
+			if (i == dog.y && j == dog.x)
+			{
+				//змінення кольору щоб намалювати собаку
+				SetConsoleTextAttribute(hStdOut, BACKGROUND_BLUE | FOREGROUND_GREEN);
+				cout << (char) dogS;
+				//повернення кольору
+				SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+			}
+			else {
+				cout << field_mash[i][j];
+			}
+		}
+		cout << endl;
+	}
 }
 
 void dog_place() {
-    srand(time(NULL));
-    do{
-        dog_X = rand() % (widht - 1);
-        dog_Y = rand() % (height - 1);
-    } while ((field_mash[dog_X][dog_Y]) != '#');//щоб собака не з'являвся в решітці
+	do {
+		dog.x = rand() % FIELD_WIDTH;
+		dog.y = rand() % FIELD_HEIGHT;
+	} while ((field_mash[dog.y][dog.x]) == borderS); //щоб собака не з'являвся в решітці
 }
 
 void generate() {
-    field_gen();
-    dog_place();
+	field_gen();
+	dog_place();
 }
 
 bool game_is_over() {
-
-    if (dog_Y == door_Y && dog_X == door_X)
-        return false;
-    else
-        return true;
+	return (dog.y == door.y && dog.x == door.x);
 }
 
 void get_input() {
-    dX = 0;
-    dY = 0;
-    //беремо значення що нажав користувач
-    char input_symbol = _getche();
-    if (input_symbol == 'H' || input_symbol == 'w') {
-        dY = -1;
-    }
-    else if (input_symbol == 'P' || input_symbol == 's') {
-        dY = 1;
-    }
-    else if (input_symbol == 'K' || input_symbol == 'a') {
-        dX = -1;
-    }
-    else if (input_symbol == 'M' || input_symbol == 'd') {
-        dX = 1;
-    }
-    else {
-        dX = 0;
-        dY = 0;
-    }
+	vectorMove.x = 0;
+	vectorMove.y = 0;
+	//беремо значення що нажав користувач
+	char input_symbol = _getche();
+
+	if (input_symbol == 'H' || input_symbol == 'w') {
+		vectorMove.y = -1;
+	}
+	else if (input_symbol == 'P' || input_symbol == 's') {
+		vectorMove.y = 1;
+	}
+	else if (input_symbol == 'K' || input_symbol == 'a') {
+		vectorMove.x = -1;
+	}
+	else if (input_symbol == 'M' || input_symbol == 'd') {
+		vectorMove.x = 1;
+	}
+	else {
+		vectorMove.x = 0;
+		vectorMove.y = 0;
+	}
 }
 
 bool is_walkable(int X, int Y) {
-    if (field_mash[Y][X] == '#')
-        return false;
-    else
-        return true;
+	return field_mash[Y][X] != borderS;
 }
 
 bool can_go_to(int newX, int newY) {
-    if (newX < 0 || newX >= widht || newY < 0 || newY >= height)
-        return false;
-    if (!is_walkable(newX, newY))
-        return false;
-    else
-        return true;
+	if (newX < 0 || newX >= FIELD_WIDTH || newY < 0 || newY >= FIELD_HEIGHT)
+		return false;
+	if (!is_walkable(newX, newY))
+		return false;
+	else
+		return true;
 }
 
 void go_to(int newX, int newY) {
-    dog_X = newX;
-    dog_Y = newY;
-
+	dog = Cords(newX,newY);
 }
 
 void try_to_go(int new_X, int new_Y) {
-    if (can_go_to(new_X, new_Y))
-        go_to(new_X, new_Y);
+	if (can_go_to(new_X, new_Y))
+		go_to(new_X, new_Y);
 }
 
 void logic() {
-    try_to_go(dog_X + dX, dog_Y + dY);
+	try_to_go(dog.x + vectorMove.x, dog.y + vectorMove.y);
 }
 
 
 int main() {
-    generate();
-    draw();
-    while (game_is_over()) {
-        get_input();
-        logic();
-        draw();
-    }
-    cout << "YOU WINNNNNNN!!!!";
-    return 0;
+	//srand((unsigned int) time(NULL));
+	//тимчасово один сід для тестів
+	srand(10000000);
+	generate();
+	draw();
+	while (!game_is_over()) {
+		get_input();
+		logic();
+		draw();
+	}
+	cout << "YOU WINNNNNNN!!!!";
+	return 0;
 }
