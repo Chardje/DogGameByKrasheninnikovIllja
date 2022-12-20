@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
@@ -28,18 +29,33 @@ void field_gen() {
                 field_mash[i][j] = '_';
         }
     }
-    door_X = rand() % (widht - 1);
-    door_Y = rand() % (height - 1);
+    door_X = rand() % widht;
+    door_Y = rand() % height;
     field_mash[door_Y][door_X] = 'O';
 
 }
 void draw() {
+    //перенос курсора на початок сторінки
+    //щоб текст заміняв свій минули
+    //можна вважати це як очищення консоліі але не билимає
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD pos{ 0, 0 };
+    SetConsoleCursorPosition(hStdOut, pos);
+
+    //
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < widht; j++) {
-            if (i == dog_Y && j == dog_X)
+            if (i == dog_Y && j == dog_X) 
+            {
+                //змінення кольору щоб намалювати собаку
+                SetConsoleTextAttribute(hStdOut, BACKGROUND_BLUE | FOREGROUND_GREEN);
                 cout << dog;
-            else
+                //повернення кольору
+                SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+            }
+            else {
                 cout << field_mash[i][j];
+            }
         }
         cout << endl;
     }
@@ -47,8 +63,10 @@ void draw() {
 
 void dog_place() {
     srand(time(NULL));
-    dog_X = rand() % (widht - 1);
-    dog_Y = rand() % (height - 1);
+    do{
+        dog_X = rand() % (widht - 1);
+        dog_Y = rand() % (height - 1);
+    } while ((field_mash[dog_X][dog_Y]) != '#');//щоб собака не з'являвся в решітці
 }
 
 void generate() {
@@ -67,18 +85,18 @@ bool game_is_over() {
 void get_input() {
     dX = 0;
     dY = 0;
-    char input_symbol;
-    cin >> input_symbol;
-    if (input_symbol == 'W' || input_symbol == 'w') {
+    //беремо значення що нажав користувач
+    char input_symbol = _getche();
+    if (input_symbol == 'H' || input_symbol == 'w') {
         dY = -1;
     }
-    else if (input_symbol == 'S' || input_symbol == 's') {
+    else if (input_symbol == 'P' || input_symbol == 's') {
         dY = 1;
     }
-    else if (input_symbol == 'A' || input_symbol == 'a') {
+    else if (input_symbol == 'K' || input_symbol == 'a') {
         dX = -1;
     }
-    else if (input_symbol == 'D' || input_symbol == 'd') {
+    else if (input_symbol == 'M' || input_symbol == 'd') {
         dX = 1;
     }
     else {
@@ -126,7 +144,6 @@ int main() {
         get_input();
         logic();
         draw();
-
     }
     cout << "YOU WINNNNNNN!!!!";
     return 0;
